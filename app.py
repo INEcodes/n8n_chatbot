@@ -28,12 +28,27 @@ st.set_page_config(
 # Load environment variables from .env file
 load_dotenv()
 
+# Prefer Streamlit secrets for API keys; set them as environment variables so existing code can use os.environ.get()
+try:
+    # If running on Streamlit Cloud (or local secrets), copy secrets into environment so rest of the code is unchanged
+    if "PINECONE_API_KEY" in st.secrets:
+        os.environ["PINECONE_API_KEY"] = st.secrets["PINECONE_API_KEY"]
+    if "GOOGLE_API_KEY" in st.secrets:
+        os.environ["GOOGLE_API_KEY"] = st.secrets["GOOGLE_API_KEY"]
+    if "PINECONE_CLOUD" in st.secrets:
+        os.environ["PINECONE_CLOUD"] = st.secrets["PINECONE_CLOUD"]
+    if "PINECONE_REGION" in st.secrets:
+        os.environ["PINECONE_REGION"] = st.secrets["PINECONE_REGION"]
+except Exception:
+    # If st.secrets is not available or keys missing, fall back to existing environment variables (from .env or system)
+    pass
+
 # Set your API keys
 PINECONE_API_KEY = os.environ.get("PINECONE_API_KEY")
 GEMINI_API_KEY = os.environ.get("GOOGLE_API_KEY")
 
 if not PINECONE_API_KEY or not GEMINI_API_KEY:
-    st.error("❌ Missing required API keys in environment variables")
+    st.error("❌ Missing required API keys in environment variables or Streamlit secrets")
     st.stop()
 
 # Configure Google Gemini
